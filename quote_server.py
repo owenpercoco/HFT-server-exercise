@@ -20,7 +20,7 @@ def now():
     str : The current time
     '''
     current = datetime.now()
-    return current.strftime('%Y-%m-%dT%H:%M:%S.%f')
+    return current.strftime('%Y-%m-%d %H:%M:%S.%f')
 
 '''Just a couple simple methods to return the previously stated global variables. '''
 def get_high():
@@ -29,6 +29,19 @@ def get_high():
 def get_last():
     global last
     return last
+def sameDay(record, high):
+    '''
+    really simple check, checks if the high record is from the same day as the current, since were only checking the highest record for the day.
+    '''
+    r_day = (record['timestamp'].split(' ')[0])
+    r_day = r_day.split('-')
+    if 'timestamp' in high:
+    	h_day = (high['timestamp'].split(' ')[0])
+        h_day = h_day.split('-')
+    else:
+        return True
+    print(r_day)
+    return h_day == r_day
 def quote_gen():
     ''' 
     Simulate a series of price quotations, periodically emitting a price correction
@@ -50,8 +63,12 @@ def quote_gen():
         size = np.round(np.random.exponential(1000), decimals=0)
         record = { "symbol": "AAPL", "price": price, "size": size, "timestamp": now() }
         '''Heres the logic, essentially if it encounters a price higher than the previous max, it replaces the previous max.  It does the same with the last, simply saving the last value that isn't a correction, which is the only time we travel backwards in time.  '''
-        if record['price'] > get_high()['price']:
-			high = record
+        
+	if record['price'] > get_high()['price'] and sameDay(record, get_high()):
+            high = record
+        #if record is from a new day, we just overwrite high with the new record.
+        if not sameDay(record, get_high()):
+            high = record
         last = record  #setting last to the most recently created record
         # Preserve this record as to simulate a correction msg later
         if not correction: correction = record
@@ -61,7 +78,8 @@ def quote_gen():
             
             # Modify the price field
             correction['price'] += np.random.normal(0, 1, 1)[0]
-            if correction['price'] > get_high()['price']:
+            #we also check if the correction throws off our highest price
+            if correction['price'] > get_high()['price']: 
                         high = correction           
             yield correction
             correction = record
@@ -119,4 +137,4 @@ if __name__ == '__main__':
 	print(socket.gethostname())
 	print('spinning up server')
 	#192.168.0.135
-	server = QuotationServer('192.168.0.138', 8585)
+	server = QuotationServer('192.168.0.139', 8585)
