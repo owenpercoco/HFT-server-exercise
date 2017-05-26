@@ -7,6 +7,7 @@ from twisted.internet import reactor, endpoints
 from twisted.web.server import Site
 from twisted.python import log
 high = {"price":0}
+last = {}
 def now():
     '''
     Return a pretty formatted string of the current datetime
@@ -20,6 +21,9 @@ def now():
 def get_high():
 	global high
 	return high
+def get_last():
+    global last
+    return last
 def quote_gen():
     ''' 
     Simulate a series of price quotations, periodically emitting a price correction
@@ -35,18 +39,14 @@ def quote_gen():
     price = 250
     correction = None
     global high
+    global last
     while True:
         price += np.random.normal(0, 1)
         size = np.round(np.random.exponential(1000), decimals=0)
         record = { "symbol": "AAPL", "price": price, "size": size, "timestamp": now() }
-        print('current hightest price:')
-        print(get_high()['price'])
-        print('_ _ _ _ _ _ ')
         if record['price'] > get_high()['price']:
 			high = record
-			print('-----\/\/\/\/\/\/----NEW HIGHEST PRICE')
-			print(get_high())
-			print('--------------------')
+        last = record
         # Preserve this record as to simulate a correction msg later
         if not correction: correction = record
 
@@ -99,14 +99,17 @@ class QuotationServer(object):
     def price_quotation(self, request):
         return json.dumps(next(self.quotes))
 
-	@app.route('/high')
-	def highest_price(self, request):
-		print(get_high())
-		return json.dumps(get_high())
-
+    @app.route('/high')
+    def highest_price(self, request):
+        print(get_high())
+        return json.dumps(get_high())
+    @app.route('/last')
+    def last_price(self, request):
+        print(get_last())
+        return json.dumps(get_last()) 
 # Run the server
 if __name__ == '__main__':
 	print(socket.gethostname())
 	print('spinning up server')
 	#192.168.0.135
-	server = QuotationServer('192.168.0.136', 8585)
+	server = QuotationServer('192.168.0.137', 8585)
