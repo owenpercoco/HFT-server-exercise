@@ -79,7 +79,7 @@ def quote_gen():
             # Modify the price field
             correction['price'] += np.random.normal(0, 1, 1)[0]
             #we also check if the correction throws off our highest price
-            if correction['price'] > get_high()['price']: 
+            if correction['price'] > get_high()['price'] and sameDay(correction, get_high()): 
                         high = correction           
             yield correction
             correction = record
