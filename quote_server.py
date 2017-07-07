@@ -75,13 +75,18 @@ def quote_gen():
 
         # Periodically emit a price correction
         if np.random.binomial(1, .2):
-            
+            	            
             # Modify the price field
             correction['price'] += np.random.normal(0, 1, 1)[0]
             #we also check if the correction throws off our highest price
-            if correction['price'] > get_high()['price'] and sameDay(correction, get_high()): 
+        
+	    if correction['price'] > get_high()['price'] and sameDay(correction, get_high()): 
                         high = correction           
-            yield correction
+	    #also checking if it was the high that got corrected
+            if correction['timestamp'] == get_high()['timestamp'] and sameDay(correction, get_high()):
+                        high = correction
+	 		print 'in the high correction jumble' 
+	    yield correction
             correction = record
         
         yield record
@@ -136,5 +141,5 @@ class QuotationServer(object):
 if __name__ == '__main__':
 	print(socket.gethostname())
 	print('spinning up server')
-	#192.168.0.135
-	server = QuotationServer('192.168.0.139', 8585)
+	#this is having trouble on my VM, so Im using actual IPs.  You can probably just use localhost
+	server = QuotationServer('192.168.0.19', 8585)
